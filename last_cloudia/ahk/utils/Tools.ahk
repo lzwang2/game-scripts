@@ -59,7 +59,7 @@ IsImageMatch(hWnd, coords, imageMap, imageKey) {
     }
 }
 
-MultiClick(times := 3, interval := 300) {
+MultiClick(times := 5, interval := 300) {
     Loop times
     {
         Click

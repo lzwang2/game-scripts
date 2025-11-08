@@ -52,7 +52,7 @@ SinglePlayerCoreProcess(hWnd) {
     
     Loop 1000 {
 
-        ; 不需要battle_end，else一直点，一直到RESULT界面，弹出再战弹框 //todo
+        ; 战斗结算
         if IsImageMatch(hWnd, single_player_core_coords, single_player_core_image_map, "battle_end") {
             
             sleep 800

@@ -1,14 +1,9 @@
 #Requires AutoHotkey v2.0
 #Include ../utils/Tools.ahk
 #Include ../utils/multi_player_core/MultiPlayerCoreProcess.ahk
+#Include ../utils/PrepareWindow.ahk
 
 ; https://github.com/iseahound/ImagePut/blob/master/README.md
-
-; 对齐窗口位置和大小
-window_x := 1174
-window_y := 3
-window_w := 750
-window_h := 1040
 
 ; 全局坐标映射表
 global multi_player_game_coords := Map()
@@ -24,7 +19,7 @@ global multi_player_game_image_map := Map()
 ; 遍历multi_player_game_coords的所有key并加载对应图像
 for key in multi_player_game_coords {
     ; 构建图像文件名（假设是PNG格式）
-    imageFile := key . ".png"
+    imageFile := A_LineFile "\..\" key ".png"
     
     ; 加载参考图像到内存缓冲区并存入map
     try {
@@ -44,22 +39,7 @@ multi_player_game_coords["update_list"] := {x: 647, y: 955}
 multi_player_game_coords["network_error_retry"] := {x: 360, y: 640}
 
 ; 获取窗口句柄
-gameTitle := "Last Cloudia ahk_class UnityWndClass"
-SetTitleMatchMode 2
-hWnd := WinExist(gameTitle)
-
-if !hWnd {
-    MsgBox "游戏窗口未找到！"
-    ExitApp
-}
-
-WinActivate gameTitle
-
-sleep 1000
-
-WinMove window_x, window_y, window_w, window_h, hWnd
-
-sleep 1000
+hWnd := PrepareWindow()
 
 Loop 1000 ; 查找房间循环
 {
@@ -93,6 +73,11 @@ Loop 1000 ; 查找房间循环
         Click
         Sleep 3000
         
+    } else if IsConnectionFail(hWnd) {
+
+        ClickConnectionFail()
+        Break ; 结束循环
+    
     } else {
         sleep 1000 ; 继续查找房间循环
     }

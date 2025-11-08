@@ -1,6 +1,6 @@
 ﻿#Requires AutoHotkey v2.0
 #Include ../tools.ahk
-
+#Include ../CommonActions.ahk
 
 ; 全局坐标映射表
 global multi_player_core_coords := Map()
@@ -9,13 +9,12 @@ global multi_player_core_coords := Map()
 multi_player_core_coords["prepare_page"] := {x1: 185, y1: 704, x2: 543, y2: 733}
 multi_player_core_coords["unable_to_join"] := {x1: 185, y1: 704, x2: 543, y2: 733}
 multi_player_core_coords["go"] := {x1: 374, y1: 614, x2: 638, y2: 663}
+multi_player_core_coords["abandan_task_area"] := {x1: 270, y1: 615, x2: 465, y2: 660}
 multi_player_core_coords["emoji"] := {x1: 481, y1: 849, x2: 606, y2: 956}
 multi_player_core_coords["battle_end"] := {x1: 169, y1: 205, x2: 292, y2: 270}
 multi_player_core_coords["first_clear_reward"] := {x1: 182, y1: 207, x2: 283, y2: 232}
 multi_player_core_coords["multi_clear_reward"] := {x1: 254, y1: 910, x2: 465, y2: 965}
 multi_player_core_coords["battle_last_result"] := {x1: 175, y1: 810, x2: 530, y2: 860}
-
-multi_player_core_coords["connection_fail"] := {x1: 220, y1: 370, x2: 520, y2: 420}
 
 ; 创建图像缓冲区map
 global multi_player_core_image_map := Map()
@@ -34,14 +33,11 @@ for key in multi_player_core_coords {
     }
 }
 
-
 ; 点击位置坐标
-multi_player_core_coords["ready_btn"] := {x: 373, y: 864}
 multi_player_core_coords["unable_yes"] := {x: 368, y: 645}
 multi_player_core_coords["first_clear_reward_yes"] := {x: 370, y: 535}
 multi_player_core_coords["multi_clear_reward_yes"] := {x: 381, y: 940}
 multi_player_core_coords["stone_yes"] := {x: 374, y: 743}
-multi_player_core_coords["connection_fail_yes"] := {x: 640, y: 420}
 
 multi_player_core_coords["safe_place_for_click"] := {x: 708, y: 500}
 
@@ -58,9 +54,11 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
     ready_run_flag := 0 ; 控制只点击一次"准备完毕"
                         ; 有时候会卡在队伍准备的页面，如果一直卡到无法加入房间倒没什么问题
                         ; 如果卡了一会儿反而进入房间了，此时因时间差反而在执行prepare_page的点击，会导致进入房间后的ready状态被取消
+    
+    in_room_count := 0
+
     Loop
     {
-        readyBtn := multi_player_core_coords["ready_btn"]
         emojiArea := multi_player_core_coords["emoji"]
         battleEndArea := multi_player_core_coords["battle_end"]
 
@@ -68,9 +66,7 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
         if (ready_run_flag = 0) and IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "prepare_page")  {
             ; 移动到"准备完毕"按钮
             
-            MouseMove readyBtn.x, readyBtn.y
-            Sleep 1000
-            Click
+            ClickReady()
             Sleep 2000 ; 等待进入房间
             ready_run_flag := 1
 
@@ -85,14 +81,35 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
 
             Break ; 结束循环
 
+        ; 放弃任务
+        } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "abandan_task_area") {
+                
+            ; 点击"确定"按钮，复用unable_yes坐标位置
+            unableYes := multi_player_core_coords["unable_yes"]
+            MouseMove unableYes.x, unableYes.y
+            Sleep 1000
+            Click
+
+            Break ; 结束循环
+
         ; 进入房间后，且人数已经足够出发
         } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "go") {
 
             ; 如果是房主，需要点击出发，出发按钮坐标和准备完毕是一样的
             if is_room_owner {
-                MouseMove readyBtn.x, readyBtn.y
-                Sleep 10000
-                Click
+                ClickReady()
+            
+            ; 不是房主，如果等了太久就撤
+            } else {
+                in_room_count += 1
+                Sleep 2000
+                ; 等了2min还没出发，撤
+                if (in_room_count = 60) {
+                    ClickReady()
+                    Sleep 1000
+                    ClickBack()
+                    break ; 退出循环
+                }
             }
 
         ; 表情包界面
@@ -151,11 +168,9 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
             Break ; 结束循环
 
         ; 无法连接到伺服器
-        } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "connection_fail") {
+        } else if IsConnectionFail(hWnd) {
 
-            MouseMove multi_player_core_coords["connection_fail_yes"].x, multi_player_core_coords["connection_fail_yes"].y
-            Sleep 800
-            Click
+            ClickConnectionFail()
             Break ; 结束循环
 
         } else {
