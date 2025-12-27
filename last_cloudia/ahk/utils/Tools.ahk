@@ -8,7 +8,7 @@ LogMessage(message) {
     FileAppend logEntry, "script_log.txt"
 }
 
-IsImageMatch(hWnd, coords, imageMap, imageKey) {
+IsImageMatch(hWnd, coords, imageMap, imageKey, tolerance := 20, matchThreshold := 0.90) {
     try {
         ; 从坐标映射表中获取坐标
         if (!coords.Has(imageKey)) {
@@ -34,6 +34,7 @@ IsImageMatch(hWnd, coords, imageMap, imageKey) {
 
         ; 比较两个图像
         result := ImageEqual(screenshot, imageMap[imageKey])
+        ; result := SimpleGrayCompare(screenshot, imageMap[imageKey], tolerance, matchThreshold)
 
         ; 添加匹配结果日志
         if (result) {
@@ -57,6 +58,68 @@ IsImageMatch(hWnd, coords, imageMap, imageKey) {
         LogMessage("图像比较出错: " e.Message)
         return false
     }
+}
+
+; SimpleGrayCompare(img1, img2, tolerance, matchThreshold) {
+;     try {
+;         ; 使用 ImagePut 的方法获取图像尺寸
+;         width1 := ImageWidth(img1)
+;         height1 := ImageHeight(img1)
+;         width2 := ImageWidth(img2)
+;         height2 := ImageHeight(img2)
+;         LogMessage(width1 " " height1)
+        
+;         if (width1 != width2 || height1 != height2) {
+;             LogMessage("图像尺寸不匹配: " width1 "x" height1 " vs " width2 "x" height2)
+;             return false
+;         }
+        
+;         ; 初始化计数器
+;         matchCount := 0
+;         totalPixels := width1 * height1
+        
+;         ; 遍历每个像素进行比较
+;         Loop height1 {
+;             y := A_Index - 1
+;             Loop width1 {
+;                 x := A_Index - 1
+                
+;                 ; 获取两个图像在相同位置的像素颜色
+;                 color1 := ImagePutPixel(img1, x, y)
+;                 color2 := ImagePutPixel(img2, x, y)
+                
+;                 ; 将RGB颜色转换为灰度值
+;                 gray1 := RGBToGray(color1)
+;                 gray2 := RGBToGray(color2)
+                
+;                 ; 使用tolerance判断两个灰度值是否"相似"
+;                 if (Abs(gray1 - gray2) <= tolerance) {
+;                     matchCount++  ; 相似像素计数+1
+;                 }
+;             }
+;         }
+        
+;         ; 计算相似度比例
+;         similarity := matchCount / totalPixels
+;         LogMessage("图像相似度: " Round(similarity * 100, 2) "%")
+        
+;         ; 使用matchThreshold判断是否匹配成功
+;         return similarity >= matchThreshold
+;     } catch Error as e {
+;         LogMessage("图像比较过程出错: " e.Message)
+;         return false
+;     }
+; }
+
+; 将RGB颜色转换为灰度值的函数
+RGBToGray(color) {
+    r := (color >> 16) & 0xFF  ; 提取红色分量 (0-255)
+    g := (color >> 8) & 0xFF   ; 提取绿色分量 (0-255)
+    b := color & 0xFF          ; 提取蓝色分量 (0-255)
+    
+    ; 使用人眼感知权重计算灰度值
+    ; 人眼对绿色最敏感(58.7%)，红色次之(29.9%)，蓝色最不敏感(11.4%)
+    return Floor(r * 0.299 + g * 0.587 + b * 0.114)
 }
 
 MultiClick(times := 5, interval := 300) {

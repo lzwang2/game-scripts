@@ -10,7 +10,7 @@ global multi_player_game_coords := Map()
 
 ; 截图区域坐标
 multi_player_game_coords["no_room"] := {x1: 253, y1: 437, x2: 484, y2: 559}
-multi_player_game_coords["welcome"] := {x1: 464, y1: 365, x2: 613, y2: 395}
+multi_player_game_coords["welcome"] := {x1: 500, y1: 365, x2: 613, y2: 395}
 multi_player_game_coords["network_error"] := {x1: 270, y1: 615, x2: 465, y2: 660}
 
 ; 创建图像缓冲区map
