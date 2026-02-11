@@ -95,6 +95,7 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
 
             ; 如果是房主，需要点击出发，出发按钮坐标和准备完毕是一样的
             if is_room_owner {
+                Sleep 5000 ; 等个5秒，看能不能等到更多人
                 ClickReady()
             
             ; 不是房主，如果等了太久就撤
@@ -166,6 +167,18 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
         } else if IsConnectionFail(hWnd) {
 
             ClickConnectionFail()
+            Break ; 结束循环
+
+		; 无法连接到多人游戏伺服器
+        } else if IsMultiConnectionFail(hWnd) {
+
+            ClickMultiConnectionFail()
+            Break ; 结束循环
+
+		; 发生了网络错误
+        } else if IsNetworkError(hWnd) {
+
+            ClickNetworkError()
             Break ; 结束循环
 
         } else {

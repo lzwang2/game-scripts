@@ -8,7 +8,10 @@ global trade_coords := Map()
 ; 截图区域坐标
 trade_coords["first_trade_enable_area"] := {x1: 530, y1: 460, x2: 590, y2: 490}
 trade_coords["second_trade_enable_area"] := {x1: 530, y1: 600, x2: 590, y2: 630}
+trade_coords["item_exchange_complete_area"] := {x1: 300, y1: 690, x2: 430, y2: 720}
 trade_coords["item_update_area"] := {x1: 275, y1: 620, x2: 460, y2: 660}
+; 有些活动交换所（比如跨年活动）和日常的活动的交换所样式有差别
+trade_coords["other_trade_enable_area"] := {x1: 530, y1: 490, x2: 590, y2: 520}
 ; 创建图像缓冲区map
 global trade_image_map := Map()
 
@@ -48,6 +51,18 @@ Loop {
         
         TradeItem(trade_coords["second_item_button"])
 
+    } else if IsImageMatch(hWnd, trade_coords, trade_image_map, "other_trade_enable_area") {
+        
+        TradeItem(trade_coords["first_item_button"])
+
+    } else if IsImageMatch(hWnd, trade_coords, trade_image_map, "item_exchange_complete_area") {
+        
+        ; 确认交换结果
+        Sleep 800
+        MouseMove trade_coords["close_button"].x, trade_coords["close_button"].y
+        Sleep 800
+        Click
+
     } else if IsImageMatch(hWnd, trade_coords, trade_image_map, "item_update_area") {
         
         MouseMove trade_coords["update_yes_button"].x, trade_coords["update_yes_button"].y
@@ -57,8 +72,6 @@ Loop {
     } else {
         Sleep 2000
     }
-
-    
 
 }
 
@@ -82,12 +95,6 @@ TradeItem(enabled_item_coord) {
 
     ; 点击交换
     MouseMove trade_coords["trade_button"].x, trade_coords["trade_button"].y
-    Sleep 800
-    Click
-
-    ; 确认交换结果
-    Sleep 3000
-    MouseMove trade_coords["close_button"].x, trade_coords["close_button"].y
     Sleep 800
     Click
 
