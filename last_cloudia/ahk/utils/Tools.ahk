@@ -129,3 +129,39 @@ MultiClick(times := 5, interval := 300) {
         Sleep interval
     }
 }
+
+
+; 分步拖拽函数
+StepDrag(startX, startY, endX, endY, steps := 5) {
+    ; 先移动到起始位置
+    MouseMove startX, startY
+    Sleep 300
+    
+    ; 按下左键
+    Click "Down"
+    Sleep 300
+    
+    ; 计算每一步的增量
+    stepX := (endX - startX) / steps
+    stepY := (endY - startY) / steps
+    
+    ; 分步移动
+    Loop steps {
+        ; 计算当前步的目标位置
+        currentStep := A_Index
+        targetX := startX + stepX * currentStep
+        targetY := startY + stepY * currentStep
+        
+        ; 移动到当前步的目标位置
+        MouseMove targetX, targetY, 30  ; 30是移动速度，数值越小越慢
+        Sleep 100  ; 每步之间的短暂停顿
+    }
+    
+    ; 确保最终到达精确的目标位置
+    MouseMove endX, endY, 20
+    Sleep 200
+    
+    ; 释放左键
+    Click "Up"
+    Sleep 300
+}

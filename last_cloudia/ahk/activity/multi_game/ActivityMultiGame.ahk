@@ -5,11 +5,14 @@
 
 ; https://github.com/iseahound/ImagePut/blob/master/README.md
 
+; 该脚本用于执行活动中的多人游戏
+; 截图需要针对活动更新
+
 ; 全局坐标映射表
 global activity_multi_game_coords := Map()
 
 ; 截图区域坐标
-activity_multi_game_coords["reward_entrance_page"] := {x1: 300, y1: 590, x2: 430, y2: 630}
+activity_multi_game_coords["reward_entrance_page"] := {x1: 320, y1: 150, x2: 420, y2: 220}
 activity_multi_game_coords["reward_room_list"] := {x1: 300, y1: 180, x2: 430, y2: 220}
 
 ; 创建图像缓冲区map
@@ -30,11 +33,19 @@ for key in activity_multi_game_coords {
 }
 
 ; 点击位置坐标
-activity_multi_game_coords["reward_entrance"] := {x: 400, y: 615}
-activity_multi_game_coords["first_room"] := {x: 375, y: 330}
+activity_multi_game_coords["reward_entrance"] := {x: 375, y: 745}
+
+; 使用数组存储多个房间坐标，方便扩展
+activity_multi_game_coords["rooms"] := []
+activity_multi_game_coords["rooms"].Push({x: 375, y: 655})  ; first_room (index 1)
+activity_multi_game_coords["rooms"].Push({x: 375, y: 755})  ; second_room (index 2)
 
 ; 获取窗口句柄
 hWnd := PrepareWindow()
+
+; 记录当前应该点击哪个房间的索引
+currentRoomIndex := 1
+totalRooms := activity_multi_game_coords["rooms"].Length
 
 Loop 1000
 {
@@ -42,7 +53,10 @@ Loop 1000
     
      if IsImageMatch(hWnd, activity_multi_game_coords, activity_multi_game_image_map, "reward_room_list")  {
     
-        MouseMove activity_multi_game_coords["first_room"].x, activity_multi_game_coords["first_room"].y
+         ; 获取当前要点击的房间坐标
+        currentRoom := activity_multi_game_coords["rooms"][currentRoomIndex]
+
+        MouseMove currentRoom.x, currentRoom.y
         Sleep 800
         Click
         Sleep 800
@@ -53,7 +67,14 @@ Loop 1000
         Sleep 1000
         
         MultiPlayerCoreProcess(true, hWnd)
+
+        ; 更新索引，循环到下一个房间
+        currentRoomIndex := Mod(currentRoomIndex, totalRooms) + 1
+
     } if IsImageMatch(hWnd, activity_multi_game_coords, activity_multi_game_image_map, "reward_entrance_page")  {
+
+        ; 拖到底部
+        StepDrag(675, 615, 675, 70)
 
         MouseMove activity_multi_game_coords["reward_entrance"].x, activity_multi_game_coords["reward_entrance"].y
         Sleep 800

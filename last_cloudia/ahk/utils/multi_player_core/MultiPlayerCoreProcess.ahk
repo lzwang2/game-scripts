@@ -14,6 +14,8 @@ multi_player_core_coords["emoji"] := {x1: 481, y1: 849, x2: 606, y2: 956}
 multi_player_core_coords["first_meeting"] := {x1: 215, y1: 720, x2: 515, y2: 775}
 multi_player_core_coords["first_clear_reward"] := {x1: 182, y1: 207, x2: 283, y2: 232}
 multi_player_core_coords["multi_clear_reward"] := {x1: 254, y1: 910, x2: 465, y2: 965}
+multi_player_core_coords["multi_game_refight"] := {x1: 100, y1: 540, x2: 210, y2: 565}
+multi_player_core_coords["refight_denied"] := {x1: 315, y1: 320, x2: 415, y2: 345}
 
 ; 创建图像缓冲区map
 global multi_player_core_image_map := Map()
@@ -37,6 +39,8 @@ multi_player_core_coords["unable_yes"] := {x: 368, y: 645}
 multi_player_core_coords["first_clear_reward_yes"] := {x: 370, y: 535}
 multi_player_core_coords["multi_clear_reward_yes"] := {x: 381, y: 940}
 multi_player_core_coords["first_meeting_close"] := {x: 370, y: 750}
+multi_player_core_coords["multi_game_refight_yes"] := {x: 470, y: 295}
+multi_player_core_coords["refight_denied_yes"] := {x: 355, y: 650}
 
 multi_player_core_coords["safe_place_for_click"] := {x: 708, y: 500}
 
@@ -55,6 +59,10 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
                         ; 如果卡了一会儿反而进入房间了，此时因时间差反而在执行prepare_page的点击，会导致进入房间后的ready状态被取消
     
     in_room_count := 0
+
+    refight := false
+
+    emoji_sent := false
 
     Loop
     {
@@ -95,7 +103,7 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
 
             ; 如果是房主，需要点击出发，出发按钮坐标和准备完毕是一样的
             if is_room_owner {
-                Sleep 5000 ; 等个5秒，看能不能等到更多人
+                Sleep 10000 ; 等会儿，看能不能等到更多人
                 ClickReady()
             
             ; 不是房主，如果等了太久就撤
@@ -111,19 +119,30 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
                 }
             }
 
-        ; 表情包界面
-        } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "emoji") {
-                    
-            ; 移动到表情包
-            randIndex := Random(1, multi_player_core_emoji_coords.Length)
-            MouseMove multi_player_core_emoji_coords[randIndex].x, multi_player_core_emoji_coords[randIndex].y
-            Sleep 2000
-            Click
-            Sleep Random(1000, 4000)
-
-        ; 战斗结算
-        } else if IsBattleEnd(hWnd) {
+        } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "multi_game_refight") {
+            ; 再战确认
             
+            MouseMove multi_player_core_coords["multi_game_refight_yes"].x, multi_player_core_coords["multi_game_refight_yes"].y
+            Sleep 1000
+            Click
+            Sleep 1000
+
+            refight := true
+
+        } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "emoji") {
+            ; 表情包界面
+
+            ; 移动到表情包
+            if !emoji_sent {
+                randIndex := Random(1, multi_player_core_emoji_coords.Length)
+                MouseMove multi_player_core_emoji_coords[randIndex].x, multi_player_core_emoji_coords[randIndex].y
+                Sleep 1000
+                Click
+                emoji_sent := true
+            }
+
+        } else if IsBattleEnd(hWnd) {
+            ; 战斗结算
             MouseMove multi_player_core_coords["safe_place_for_click"].x, multi_player_core_coords["safe_place_for_click"].y ;移动到安全位置
             
             sleep 800
@@ -155,13 +174,15 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
             sleep 800
             Click
 
-        ; 最后结算页面
         }  else if IsBattleLastResult(hWnd) {
-
+            ; 最后结算页面
             MultiClick
             Sleep 2000
             MultiClick ; 有时候玩家经验提示会耽误事儿，需要再点下
-            Break ; 结束循环
+
+            if !refight {
+                Break ; 结束循环
+            }
 
         ; 无法连接到伺服器
         } else if IsConnectionFail(hWnd) {
@@ -180,6 +201,11 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
 
             ClickNetworkError()
             Break ; 结束循环
+        } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "refight_denied") {
+            ; 初次见面奖励
+            MouseMove multi_player_core_coords["refight_denied_yes"].x, multi_player_core_coords["refight_denied_yes"].y
+            sleep 800
+            Click
 
         } else {
             Sleep 2000 ; 继续循环
