@@ -8,7 +8,7 @@ LogMessage(message) {
     FileAppend logEntry, "script_log.txt"
 }
 
-IsImageMatch(hWnd, coords, imageMap, imageKey, tolerance := 20, matchThreshold := 0.90) {
+IsImageMatch(hWnd, coords, imageMap, imageKey, tolerance := 20, matchThreshold := 0.90, maxOffset := 1) {
     try {
         ; 从坐标映射表中获取坐标
         if (!coords.Has(imageKey)) {
@@ -32,15 +32,18 @@ IsImageMatch(hWnd, coords, imageMap, imageKey, tolerance := 20, matchThreshold :
             crop: [x1, y1, width, height]  ; [x, y, width, height] 客户区相对坐标
         })
 
-        ; 比较两个图像
+        ; 先做精确匹配，失败后再退化到容差匹配，兼容细小色差和 1-2 像素抖动
         result := ImageEqual(screenshot, imageMap[imageKey])
-        ; result := SimpleGrayCompare(screenshot, imageMap[imageKey], tolerance, matchThreshold)
+        bestScore := result ? 1.0 : GetBestImageMatchScore(screenshot, imageMap[imageKey], tolerance, maxOffset)
+        if (!result) {
+            result := (bestScore >= matchThreshold)
+        }
 
         ; 添加匹配结果日志
         if (result) {
-            LogMessage("图像匹配成功: " imageKey ".png")
+            LogMessage("图像匹配成功: " imageKey ".png, score=" Round(bestScore, 4))
         } else {
-            LogMessage("图像匹配失败: " imageKey ".png")
+            LogMessage("图像匹配失败: " imageKey ".png, score=" Round(bestScore, 4))
             ; ; 保存实际截图用于调试（添加actual前缀）
             ; actualFilename := "actual_" . imageKey . ".png"
             ; ImagePutFile({
@@ -60,56 +63,65 @@ IsImageMatch(hWnd, coords, imageMap, imageKey, tolerance := 20, matchThreshold :
     }
 }
 
-; SimpleGrayCompare(img1, img2, tolerance, matchThreshold) {
-;     try {
-;         ; 使用 ImagePut 的方法获取图像尺寸
-;         width1 := ImageWidth(img1)
-;         height1 := ImageHeight(img1)
-;         width2 := ImageWidth(img2)
-;         height2 := ImageHeight(img2)
-;         LogMessage(width1 " " height1)
-        
-;         if (width1 != width2 || height1 != height2) {
-;             LogMessage("图像尺寸不匹配: " width1 "x" height1 " vs " width2 "x" height2)
-;             return false
-;         }
-        
-;         ; 初始化计数器
-;         matchCount := 0
-;         totalPixels := width1 * height1
-        
-;         ; 遍历每个像素进行比较
-;         Loop height1 {
-;             y := A_Index - 1
-;             Loop width1 {
-;                 x := A_Index - 1
-                
-;                 ; 获取两个图像在相同位置的像素颜色
-;                 color1 := ImagePutPixel(img1, x, y)
-;                 color2 := ImagePutPixel(img2, x, y)
-                
-;                 ; 将RGB颜色转换为灰度值
-;                 gray1 := RGBToGray(color1)
-;                 gray2 := RGBToGray(color2)
-                
-;                 ; 使用tolerance判断两个灰度值是否"相似"
-;                 if (Abs(gray1 - gray2) <= tolerance) {
-;                     matchCount++  ; 相似像素计数+1
-;                 }
-;             }
-;         }
-        
-;         ; 计算相似度比例
-;         similarity := matchCount / totalPixels
-;         LogMessage("图像相似度: " Round(similarity * 100, 2) "%")
-        
-;         ; 使用matchThreshold判断是否匹配成功
-;         return similarity >= matchThreshold
-;     } catch Error as e {
-;         LogMessage("图像比较过程出错: " e.Message)
-;         return false
-;     }
-; }
+GetBestImageMatchScore(image1, image2, tolerance := 20, maxOffset := 1) {
+    if (image1.width != image2.width || image1.height != image2.height) {
+        return 0.0
+    }
+
+    bestScore := 0.0
+    Loop 2 * maxOffset + 1 {
+        offsetY := A_Index - maxOffset - 1
+        Loop 2 * maxOffset + 1 {
+            offsetX := A_Index - maxOffset - 1
+            score := CompareImagesWithOffset(image1, image2, tolerance, offsetX, offsetY)
+            if (score > bestScore) {
+                bestScore := score
+            }
+        }
+    }
+
+    return bestScore
+}
+
+CompareImagesWithOffset(image1, image2, tolerance := 20, offsetX := 0, offsetY := 0) {
+    width := image1.width
+    height := image1.height
+    compareWidth := width - Abs(offsetX)
+    compareHeight := height - Abs(offsetY)
+
+    if (compareWidth <= 0 || compareHeight <= 0) {
+        return 0.0
+    }
+
+    startX1 := offsetX > 0 ? offsetX : 0
+    startY1 := offsetY > 0 ? offsetY : 0
+    startX2 := offsetX < 0 ? -offsetX : 0
+    startY2 := offsetY < 0 ? -offsetY : 0
+
+    matchedPixels := 0
+    totalPixels := compareWidth * compareHeight
+    ptr1 := image1.ptr
+    ptr2 := image2.ptr
+
+    Loop compareHeight {
+        y := A_Index - 1
+        rowOffset1 := 4 * ((startY1 + y) * width + startX1)
+        rowOffset2 := 4 * ((startY2 + y) * width + startX2)
+
+        Loop compareWidth {
+            xOffset := 4 * (A_Index - 1)
+            color1 := NumGet(ptr1 + rowOffset1 + xOffset, "uint")
+            color2 := NumGet(ptr2 + rowOffset2 + xOffset, "uint")
+
+            if (Abs(RGBToGray(color1) - RGBToGray(color2)) <= tolerance) {
+                matchedPixels += 1
+            }
+        }
+    }
+
+    return matchedPixels / totalPixels
+}
+
 
 ; 将RGB颜色转换为灰度值的函数
 RGBToGray(color) {
