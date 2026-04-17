@@ -6,10 +6,9 @@
 global multi_player_core_coords := Map()
 
 ; 截图区域坐标
-multi_player_core_coords["prepare_page"] := {x1: 365, y1: 180, x2: 645, y2: 210}
-multi_player_core_coords["unable_to_join"] := {x1: 365, y1: 180, x2: 645, y2: 210}
+multi_player_core_coords["prepare_page"] := {x1: 300, y1: 850, x2: 430, y2: 880}
+multi_player_core_coords["unable_to_join"] := {x1: 285, y1: 320, x2: 440, y2: 340}
 multi_player_core_coords["go"] := {x1: 374, y1: 614, x2: 638, y2: 663}
-multi_player_core_coords["abandan_task_area"] := {x1: 270, y1: 615, x2: 465, y2: 660}
 multi_player_core_coords["emoji"] := {x1: 481, y1: 849, x2: 606, y2: 956}
 multi_player_core_coords["first_meeting"] := {x1: 215, y1: 720, x2: 515, y2: 775}
 multi_player_core_coords["first_clear_reward"] := {x1: 182, y1: 207, x2: 283, y2: 232}
@@ -88,18 +87,19 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
             Break ; 结束循环
 
         ; 放弃任务
-        } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "abandan_task_area") {
+        } else if IsAbandonTask(hWnd) {
                 
-            ; 点击"确定"按钮，复用unable_yes坐标位置
-            unableYes := multi_player_core_coords["unable_yes"]
-            MouseMove unableYes.x, unableYes.y
-            Sleep 1000
-            Click
+            ClickAbandonTask
 
             Break ; 结束循环
 
         ; 进入房间后，且人数已经足够出发
         } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "go") {
+
+            ; 当多人游戏触发refight时，会重新进行一次战斗，此时，需要重置refight和emoji_sent，因为上一次战斗时，这两已经被设置为true
+            ; emoji_sent不重置只是发不了表情， refight若不重置，会导致不再战的情况下，也无法退出该循环
+            refight := false
+            emoji_sent := false
 
             ; 如果是房主，需要点击出发，出发按钮坐标和准备完毕是一样的
             if is_room_owner {
@@ -200,7 +200,7 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
         } else if IsNetworkError(hWnd) {
 
             ClickNetworkError()
-            Break ; 结束循环
+            
         } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "refight_denied") {
             ; 初次见面奖励
             MouseMove multi_player_core_coords["refight_denied_yes"].x, multi_player_core_coords["refight_denied_yes"].y

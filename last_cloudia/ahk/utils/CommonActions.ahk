@@ -14,8 +14,9 @@ common_coords["team_prepare_area"] := {x1: 340, y1: 870, x2: 390, y2: 890}
 common_coords["battle_end_area"] := {x1: 169, y1: 205, x2: 292, y2: 270}
 common_coords["stamina_recover_area"] := {x1: 265, y1: 200, x2: 465, y2: 235}
 common_coords["first_clear_reward_area"] := {x1: 340, y1: 525, x2: 390, y2: 545}
-common_coords["battle_last_result"] := {x1: 100, y1: 25, x2: 510, y2: 110}
+common_coords["battle_last_result"] := {x1: 100, y1: 900, x2: 625, y2: 945}
 common_coords["network_error_area"] := {x1: 285, y1: 430, x2: 435, y2: 455}
+common_coords["abandon_task_area"] := {x1: 270, y1: 615, x2: 465, y2: 660}
 
 ; 创建图像缓冲区map
 global common_image_map := Map()
@@ -45,6 +46,8 @@ common_coords["network_error_button"] := {x: 365, y: 640}
 
 common_coords["add_stamina"] := {x: 520, y: 470}
 common_coords["recover_stamina"] := {x: 365, y: 820}
+
+common_coords["abandon_task_button"] := {x: 368, y: 645}
 
 
 ClickReady() {
@@ -81,6 +84,10 @@ ClickAddStamina(count := 4) {
 
 ClickRecoverStamina() {
     ClickTargetButton("recover_stamina", 500)
+}
+
+ClickAbandonTask() {
+    ClickTargetButton("abandon_task_button", 1000)
 }
 
 ; 无法连接到伺服器
@@ -122,4 +129,9 @@ IsFirstClearReward(hWnd) {
 ; 战斗最后的结算界面
 IsBattleLastResult(hWnd) {
     return IsImageMatch(hWnd, common_coords, common_image_map, "battle_last_result")
+}
+
+; 房间解散放弃任务
+IsAbandonTask(hWnd) {
+    return IsImageMatch(hWnd, common_coords, common_image_map, "abandon_task_area")
 }

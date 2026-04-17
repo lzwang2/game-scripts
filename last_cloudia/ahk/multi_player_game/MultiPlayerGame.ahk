@@ -78,6 +78,12 @@ Loop 1000 ; 查找房间循环
         ClickConnectionFail()
         Break ; 结束循环
     
+    } else if IsAbandonTask(hWnd) {
+        
+        ; 在MultiPlayerCoreProcess中，不是房主，如果等了太久就撤时，会退出MultiPlayerCoreProcess的循环
+        ; 而此时，可能陷入abandon_task的局面，需由本循环兼容
+        ClickAbandonTask
+
     } else {
         sleep 1000 ; 继续查找房间循环
     }
