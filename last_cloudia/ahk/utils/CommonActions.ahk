@@ -8,8 +8,8 @@ global common_coords := Map()
 ; common_coords["main_page_area"] := {x1: 95, y1: 910, x2: 180, y2: 1000}
 
 common_coords["connection_fail_area"] := {x1: 220, y1: 370, x2: 520, y2: 420}
-common_coords["multi_connection_fail_area"] := {x1: 275, y1: 640, x2: 325, y2: 660}
-; common_coords["team_prepare_area"] := {x1: 125, y1: 750, x2: 230, y2: 770}
+common_coords["connection_fail_area2"] := {x1: 250, y1: 320, x2: 470, y2: 370}
+common_coords["multi_connection_fail_area"] := {x1: 275, y1: 290, x2: 455, y2: 340}
 common_coords["team_prepare_area"] := {x1: 340, y1: 870, x2: 390, y2: 890}
 common_coords["battle_end_area"] := {x1: 169, y1: 205, x2: 292, y2: 270}
 common_coords["stamina_recover_area"] := {x1: 265, y1: 200, x2: 465, y2: 235}
@@ -41,6 +41,7 @@ common_coords["ready_button"] := {x: 375, y: 865} ; 队伍准备
 common_coords["back_button"] := {x: 80, y: 960}
 
 common_coords["connection_fail_button"] := {x: 370, y: 660}
+common_coords["connection_fail_button2"] := {x: 370, y: 700}
 common_coords["multi_connection_fail_button"] := {x: 365, y: 750}
 common_coords["network_error_button"] := {x: 365, y: 640}
 
@@ -60,6 +61,10 @@ ClickBack() {
 
 ClickConnectionFail() {
     ClickTargetButton("connection_fail_button")
+}
+
+ClickConnectionFail2() {
+    ClickTargetButton("connection_fail_button2")
 }
 
 ClickMultiConnectionFail() {
@@ -90,10 +95,16 @@ ClickAbandonTask() {
     ClickTargetButton("abandon_task_button", 1000)
 }
 
-; 无法连接到伺服器
+; 无法连接到伺服器 - 类型1
 IsConnectionFail(hWnd) {
     return IsImageMatch(hWnd, common_coords, common_image_map, "connection_fail_area")
 }
+
+; 无法连接到伺服器 - 类型2
+IsConnectionFail2(hWnd) {
+    return IsImageMatch(hWnd, common_coords, common_image_map, "connection_fail_area2")
+}
+
 
 ; 无法连接到多人游戏伺服器
 IsMultiConnectionFail(hWnd) {

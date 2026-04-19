@@ -84,6 +84,10 @@ Loop 1000 ; 查找房间循环
         ; 而此时，可能陷入abandon_task的局面，需由本循环兼容
         ClickAbandonTask
 
+    } else if IsMultiConnectionFail(hWnd) {
+		; 兼容和IsAbandonTask一样的异常
+		ClickMultiConnectionFail()
+
     } else {
         sleep 1000 ; 继续查找房间循环
     }

@@ -184,15 +184,19 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
                 Break ; 结束循环
             }
 
-        ; 无法连接到伺服器
+        
         } else if IsConnectionFail(hWnd) {
-
+			; 无法连接到伺服器
             ClickConnectionFail()
             Break ; 结束循环
-
-		; 无法连接到多人游戏伺服器
+			
+        } else if IsConnectionFail2(hWnd) {
+			; 无法连接到伺服器-类型2
+            ClickConnectionFail2()
+            Break ; 结束循环
+			
         } else if IsMultiConnectionFail(hWnd) {
-
+			; 无法连接到多人游戏伺服器
             ClickMultiConnectionFail()
             Break ; 结束循环
 
@@ -202,11 +206,11 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
             ClickNetworkError()
             
         } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "refight_denied") {
-            ; 初次见面奖励
+            
             MouseMove multi_player_core_coords["refight_denied_yes"].x, multi_player_core_coords["refight_denied_yes"].y
             sleep 800
             Click
-
+			Break ;
         } else {
             Sleep 2000 ; 继续循环
         }
