@@ -16,7 +16,7 @@ common_coords["stamina_recover_area"] := {x1: 265, y1: 200, x2: 465, y2: 235}
 common_coords["first_clear_reward_area"] := {x1: 340, y1: 525, x2: 390, y2: 545}
 common_coords["battle_last_result"] := {x1: 100, y1: 900, x2: 625, y2: 945}
 common_coords["network_error_area"] := {x1: 285, y1: 430, x2: 435, y2: 455}
-common_coords["abandon_task_area"] := {x1: 270, y1: 615, x2: 465, y2: 660}
+common_coords["abandon_task_area"] := {x1: 310, y1: 320, x2: 420, y2: 350}
 
 ; 创建图像缓冲区map
 global common_image_map := Map()

@@ -96,11 +96,6 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
         ; 进入房间后，且人数已经足够出发
         } else if IsImageMatch(hWnd, multi_player_core_coords, multi_player_core_image_map, "go") {
 
-            ; 当多人游戏触发refight时，会重新进行一次战斗，此时，需要重置refight和emoji_sent，因为上一次战斗时，这两已经被设置为true
-            ; emoji_sent不重置只是发不了表情， refight若不重置，会导致不再战的情况下，也无法退出该循环
-            refight := false
-            emoji_sent := false
-
             ; 如果是房主，需要点击出发，出发按钮坐标和准备完毕是一样的
             if is_room_owner {
                 Sleep 10000 ; 等会儿，看能不能等到更多人
@@ -182,6 +177,11 @@ MultiPlayerCoreProcess(is_room_owner, hWnd) {
 
             if !refight {
                 Break ; 结束循环
+            } else {
+                ; 当多人游戏触发refight时，会重新进行一次战斗，此时，需要重置refight和emoji_sent，因为此时，这两已经被设置为true
+                ; emoji_sent不重置只是发不了表情， refight若不重置，会一直为true，导致不再战的情况下，也无法退出该循环
+                refight := false
+                emoji_sent := false
             }
 
         
