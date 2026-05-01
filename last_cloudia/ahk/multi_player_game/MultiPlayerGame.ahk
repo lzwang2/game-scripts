@@ -41,7 +41,7 @@ multi_player_game_coords["network_error_retry"] := {x: 360, y: 640}
 ; 获取窗口句柄
 hWnd := PrepareWindow()
 
-Loop ; 查找房间循环
+Loop 1000 ; 查找房间循环
 {
     welcome := multi_player_game_coords["welcome"]
     nooRoom := multi_player_game_coords["no_room"]
@@ -54,6 +54,8 @@ Loop ; 查找房间循环
         Sleep 800
         Click
         Sleep 1000
+        
+        MultiPlayerCoreProcess(false, hWnd)
 
     ; 没有房间
     } else if IsImageMatch(hWnd, multi_player_game_coords, multi_player_game_image_map, "no_room") {
@@ -87,7 +89,7 @@ Loop ; 查找房间循环
 		ClickMultiConnectionFail()
 
     } else {
-        MultiPlayerCoreProcess(false, hWnd)
+        sleep 1000 ; 继续查找房间循环
     }
 }
 
