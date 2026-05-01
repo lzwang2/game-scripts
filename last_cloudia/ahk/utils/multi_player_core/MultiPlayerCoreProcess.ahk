@@ -50,7 +50,7 @@ multi_player_core_emoji_coords := [
     {x: 510, y: 669}
 ]
 
-global in_room_count := 0
+in_room_count := 0
 
 emoji_sent := false
 
