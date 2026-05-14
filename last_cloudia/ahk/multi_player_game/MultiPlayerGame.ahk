@@ -11,7 +11,6 @@ global multi_player_game_coords := Map()
 ; 截图区域坐标
 multi_player_game_coords["no_room"] := {x1: 253, y1: 437, x2: 484, y2: 559}
 multi_player_game_coords["welcome"] := {x1: 500, y1: 365, x2: 613, y2: 395}
-multi_player_game_coords["network_error"] := {x1: 270, y1: 615, x2: 465, y2: 660}
 
 ; 创建图像缓冲区map
 global multi_player_game_image_map := Map()
@@ -36,12 +35,11 @@ for key in multi_player_game_coords {
 ; 点击位置坐标
 multi_player_game_coords["first_room"] := {x: 344, y: 329}
 multi_player_game_coords["update_list"] := {x: 647, y: 955}
-multi_player_game_coords["network_error_retry"] := {x: 360, y: 640}
 
 ; 获取窗口句柄
 hWnd := PrepareWindow()
 
-Loop 1000 ; 查找房间循环
+Loop ; 查找房间循环
 {
     welcome := multi_player_game_coords["welcome"]
     nooRoom := multi_player_game_coords["no_room"]
@@ -54,8 +52,6 @@ Loop 1000 ; 查找房间循环
         Sleep 800
         Click
         Sleep 1000
-        
-        MultiPlayerCoreProcess(false, hWnd)
 
     ; 没有房间
     } else if IsImageMatch(hWnd, multi_player_game_coords, multi_player_game_image_map, "no_room") {
@@ -66,30 +62,8 @@ Loop 1000 ; 查找房间循环
         Click
         Sleep 6000
         
-    } else if IsImageMatch(hWnd, multi_player_game_coords, multi_player_game_image_map, "network_error") {
-        
-        MouseMove multi_player_game_coords["network_error_retry"].x, multi_player_game_coords["network_error_retry"].y
-        Sleep 800
-        Click
-        Sleep 3000
-        
-    } else if IsConnectionFail(hWnd) {
-
-        ClickConnectionFail()
-        Break ; 结束循环
-    
-    } else if IsAbandonTask(hWnd) {
-        
-        ; 在MultiPlayerCoreProcess中，不是房主，如果等了太久就撤时，会退出MultiPlayerCoreProcess的循环
-        ; 而此时，可能陷入abandon_task的局面，需由本循环兼容
-        ClickAbandonTask
-
-    } else if IsMultiConnectionFail(hWnd) {
-		; 兼容和IsAbandonTask一样的异常
-		ClickMultiConnectionFail()
-
     } else {
-        sleep 1000 ; 继续查找房间循环
+        MultiPlayerCoreProcess(false, hWnd)
     }
 }
 
